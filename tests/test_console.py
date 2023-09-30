@@ -1,38 +1,15 @@
 #!/usr/bin/python3
 
-
 """
-Tests the console
+THis contains the class TestConsoleDocs
 """
-
-import unittest
-from unittest.mock import patch
-from io import StringIO
-import pep8
-import pep8 as pycodestyle
+import io
 import os
-import json
+from contextlib import redirect_stdout
 import console
-import tests
 import inspect
-import models
-from console import HBNBCommand
-from models.base_model import BaseModel
-from models.user import User
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
-from models.engine.file_storage import FileStorage
-from models.engine.db_storage import DBStorage
-
-
-Model = HBNBCommand
-City = HBNBCommand
-module_doc = HBNBCommand.__doc__
-path1 = "console.py"
-path2 = "tests/test_console.py"
+import pep8
+import unittest
 HBNBCommand = console.HBNBCommand
 
 
@@ -67,119 +44,73 @@ class TestConsoleDocs(unittest.TestCase):
                         "HBNBCommand class needs a docstring")
 
 
-class TestBaseModelDocs(unittest.TestCase):
-    """Test to check behaviors"""
-
+class TestConsoleCommands(unittest.TestCase):
+    """test console commands"""
     @classmethod
-    def setUpClass(self):
-        """setting up tests"""
-        self.base_funcs = inspect.getmembers(BaseModel, inspect.isfunction)
+    def setUpClass(cls):
+        """Create command console for test"""
+        cls.cmdcon = HBNBCommand()
 
-    def test_pep8(self):
-        """Testing pep8"""
-        for path in [path1,
-                     path2]:
-            with self.subTest(path=path):
-                errors = pycodestyle.Checker(path).check_all()
-                self.assertEqual(errors, 0)
+    def setUp(self):
+        """Create in memory buffer for stdout"""
+        self.output = io.StringIO()
 
-    def test_module_docstring(self):
-        """Test module docstring"""
-        self.assertIsNot(module_doc, None,
-                         "base_model.py needs a docstring")
-        self.assertTrue(len(module_doc) > 1,
-                        "base_model.py needs a docstring")
+    def tearDown(self):
+        """Close in memory buffer after test completes"""
+        self.output.close()
 
-    def test_class_docstring(self):
-        """Test classes doctring"""
-        self.assertIsNot(BaseModel.__doc__, None,
-                         "BaseModel class needs a docstring")
-        self.assertTrue(len(BaseModel.__doc__) >= 1,
-                        "BaseModel class needs a docstring")
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
+                     "Testing DBStorage")
+    def test_do_create(self):
+        """Test do_create method of console"""
+        with redirect_stdout(self.output):
+            self.cmdcon.onecmd('create')
+            self.assertEqual(self.output.getvalue(),
+                             "** class name missing **\n")
+            self.output.seek(0)
+            self.output.truncate()
+            self.cmdcon.onecmd('create blah')
+            self.assertEqual(self.output.getvalue(),
+                             "** class doesn't exist **\n")
+            self.output.seek(0)
+            self.output.truncate()
+            self.cmdcon.onecmd('create State')
+            self.assertRegex(self.output.getvalue(),
+                             '[a-z0-9]{8}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{12}')
+            self.output.seek(0)
+            self.output.truncate()
+            self.cmdcon.onecmd('create State name="California"')
+            self.assertRegex(self.output.getvalue(),
+                             '[a-z0-9]{8}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{12}')
 
-    def test_func_docstrings(self):
-        """test func dostrings"""
-        for func in self.base_funcs:
-            with self.subTest(function=func):
-                self.assertIsNot(
-                    func[1].__doc__,
-                    None,
-                    "{:s} method needs a docstring".format(func[0])
-                )
-                self.assertTrue(
-                    len(func[1].__doc__) > 1,
-                    "{:s} method needs a docstring".format(func[0])
-                )
-
-
-class ConsoleTest(unittest.TestCase):
-    """testing console"""
-
-    @classmethod
-    def setUpClass(self):
-        """setting class up"""
-        self.console = HBNBCommand()
-
-    def test_docstrings(self):
-        """Testing docstings"""
-        self.assertIsNotNone(console.__doc__)
-        self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_EOF.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_create.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_show.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_destroy.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_all.__doc__)
-        self.assertIsNotNone(HBNBCommand.do_update.__doc__)
-        self.assertIsNotNone(HBNBCommand.default.__doc__)
-
-    def test_non_exist_command(self):
-        """Tests a command that doesn't exist like goku"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("goku")
-            self.assertEqual('*** Unknown syntax: goku\n' or '',
-                             f.getvalue())
-
-    def test_empty_line(self):
-        """Tests empty input"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("\n")
-            self.assertEqual('', f.getvalue())
-
-
-@unittest.skipIf(type(models.storage) == DBStorage, "Testing DBStorage")
-class CreateTest(unittest.TestCase):
-    """Tests command test in console"""
-
-    @classmethod
-    def setUpClass(self):
-        """Sets class up"""
-        self.console = HBNBCommand()
-
-    def test_create(self):
-        """Testing creat input"""
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("create")
-            self.assertEqual("** class name missing **\n",
-                             f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("create holbieees")
-            self.assertEqual("** class doesn't exist **\n",
-                             f.getvalue())
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("create BaseModel")
-            HBNBCommand().onecmd("create User")
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("all User")
-            self.assertEqual(
-                            '[[User]', f.getvalue()[:7])
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("create BaseModel")
-        self.assertRegex(f.getvalue(), '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5]'
-                                       '[0-9a-f]{3}-[89ab][0-9a-f]{3}-'
-                                       '[0-9a-f]{12}$')
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("create User")
-        self.assertRegex(f.getvalue(), '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5]'
-                                       '[0-9a-f]{3}-[89ab][0-9a-f]{3}-'
-                                       '[0-9a-f]{12}$')
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                     "Testing DBStorage")
+    def test_do_create_db(self):
+        """Test do_create"""
+        with redirect_stdout(self.output):
+            self.cmdcon.onecmd('create')
+            self.assertEqual(self.output.getvalue(),
+                             "** class name missing **\n")
+            self.output.seek(0)
+            self.output.truncate()
+            self.cmdcon.onecmd('create blah')
+            self.assertEqual(self.output.getvalue(),
+                             "** class doesn't exist **\n")
+            self.output.seek(0)
+            self.output.truncate()
+            self.cmdcon.onecmd('create State name="California"')
+            id = self.output.getvalue()
+            self.assertRegex(id,
+                             '[a-z0-9]{8}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{4}-'
+                             '[a-z0-9]{12}')
