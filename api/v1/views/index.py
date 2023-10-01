@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""API index views module"""
+"""This file contains the API index views module"""
 from models.amenity import Amenity
 from models.city import City
 from models.place import Place
