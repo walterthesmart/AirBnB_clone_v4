@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Testing documentation of a module
+"""
+Testing documentation of a module
 """
 from importlib import import_module
 import sys
