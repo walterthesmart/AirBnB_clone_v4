@@ -1,1 +1,0 @@
-# AirBnB clone - Models

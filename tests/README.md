@@ -1,1 +1,0 @@
-# AirBnb clone - Tests
