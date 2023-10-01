@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Contains the class DBStorage
+This file ontains the class DBStorage
 """
 
 import models

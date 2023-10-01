@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Contains the class TestConsoleDocs
+This python script contains the class TestConsoleDocs
 """
 
 import console
