@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Contains the TestAmenityDocs classes
+This module contains the TestAmenityDocs classes
 """
 
 from datetime import datetime
