@@ -2,7 +2,7 @@
 
 """
 This script uses Flask app to generate complete html page containing location/amenity
-dropdown menus and rental listings
+dropdown menus
 """
 
 from flask import Flask, render_template

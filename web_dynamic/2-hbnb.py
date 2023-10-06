@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-"""This script uses Flask app to generate complete html page containing location/amenity
+"""
+This script uses Flask app to generate complete html page containing location/amenity
 dropdown menus and rental listings
 """
 
